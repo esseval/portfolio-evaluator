@@ -1,5 +1,5 @@
 function formatCurrency(value) {
-  return '$' + value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return '$' + ' ' + value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
 function formatPercent(value) {

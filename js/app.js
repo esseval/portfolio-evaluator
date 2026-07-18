@@ -10,8 +10,6 @@ const App = {
     this._setupUI();
     this._setupEventListeners();
     Portfolio.onChange(() => this.refresh());
-    var settings = Storage.getSettings();
-    document.getElementById('currencyToggle').textContent = settings.currency === 'ARS' ? '$ ARS' : 'US$ USD';
     this.refresh();
   },
 
@@ -39,7 +37,7 @@ const App = {
     document.getElementById('printBtn').addEventListener('click', () => window.print());
     document.getElementById('refreshBtn').addEventListener('click', () => this.refresh());
     document.getElementById('themeToggle').addEventListener('click', () => this._toggleTheme());
-    document.getElementById('currencyToggle').addEventListener('click', () => this._toggleCurrency());
+    
     document.getElementById('clearDataBtn').addEventListener('click', () => this._clearData());
     document.getElementById('cancelTransaction').addEventListener('click', () => this._hideTransactionModal());
     document.getElementById('closeReport').addEventListener('click', () => this._hideReportModal());
@@ -301,10 +299,6 @@ const App = {
       const content = e.target.result;
       var result = Portfolio.loadFromAccionesTxt(content);
       if (result.success) {
-        var settings = Storage.getSettings();
-        settings.currency = 'ARS';
-        Storage.setSettings(settings);
-        document.getElementById('currencyToggle').textContent = '$ ARS';
         this.showToast('Cargadas ' + result.count + ' posiciones y ' + result.transactions + ' transacciones', 'success');
       } else {
         this.showToast('Error: ' + result.error, 'error');
@@ -451,14 +445,6 @@ const App = {
     const data = { portfolio: portfolio, exportedAt: new Date().toISOString() };
     const json = JSON.stringify(data, null, 2);
     Report.download(json, 'portafolio.json', 'application/json');
-  },
-
-  _toggleCurrency() {
-    var settings = Storage.getSettings();
-    settings.currency = settings.currency === 'ARS' ? 'USD' : 'ARS';
-    Storage.setSettings(settings);
-    document.getElementById('currencyToggle').textContent = settings.currency === 'ARS' ? '$ ARS' : 'US$ USD';
-    this._renderAll();
   },
 
   _toggleTheme() {

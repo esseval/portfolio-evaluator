@@ -67,6 +67,22 @@ const Storage = {
     return this.set('marketCache', cache);
   },
 
+  getInitialCapital() {
+    return this.get('initialCapital', 0);
+  },
+
+  setInitialCapital(value) {
+    return this.set('initialCapital', value);
+  },
+
+  getCashBalance() {
+    return this.get('cashBalance', 0);
+  },
+
+  setCashBalance(value) {
+    return this.set('cashBalance', value);
+  },
+
   getSettings() {
     return this.get('settings', { theme: 'light', autoRefresh: false, refreshInterval: 5 });
   },

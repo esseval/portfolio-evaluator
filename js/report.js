@@ -49,7 +49,16 @@ const Report = {
     lines.push('RESUMEN');
     lines.push('Capital Invertido: ' + formatCurrency(summary.totalInvested));
     lines.push('Valor Actual: ' + formatCurrency(summary.totalCurrent));
-    lines.push('Ganancia/Pérdida: ' + formatCurrency(summary.totalGainLoss) + ' (' + formatPercent(summary.totalReturn) + ')');
+    lines.push('Efectivo Disponible: ' + formatCurrency(Storage.getCashBalance()));
+    lines.push('Valor Total (Posiciones + Efectivo): ' + formatCurrency(summary.totalCurrent + Storage.getCashBalance()));
+    const initialCapital = Storage.getInitialCapital();
+    if (initialCapital > 0) {
+      const totalValue = summary.totalCurrent + Storage.getCashBalance();
+      const totalGainLoss = totalValue - initialCapital;
+      const totalReturn = (totalGainLoss / initialCapital) * 100;
+      lines.push('Capital Inicial: ' + formatCurrency(initialCapital));
+      lines.push('Ganancia/Pérdida Total: ' + formatCurrency(totalGainLoss) + ' (' + formatPercent(totalReturn) + ')');
+    }
     lines.push('');
     lines.push('POSICIONES');
     lines.push('Ticker | Nombre | Cantidad | Precio Compra | Precio Actual | Rendimiento | Señal');

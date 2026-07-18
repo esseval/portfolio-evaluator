@@ -30,8 +30,11 @@ const MarketData = {
 
     if (this._pending[ticker]) return this._pending[ticker];
 
-    const promise = this._fetchWithFallback(ticker)
+    const yahooTicker = ticker + '.BA';
+
+    const promise = this._fetchWithFallback(yahooTicker)
       .then(data => {
+        data.ticker = ticker;
         this._setCache(ticker, data);
         delete this._pending[ticker];
         return data;
