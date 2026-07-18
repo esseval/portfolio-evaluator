@@ -1,0 +1,6 @@
+ticker,name,shares,avgPrice
+AAPL,Apple Inc.,10,150.00
+MSFT,Microsoft Corp.,5,280.00
+GOOGL,Alphabet Inc.,8,140.00
+AMZN,Amazon.com Inc.,3,145.00
+TSLA,Tesla Inc.,15,220.00

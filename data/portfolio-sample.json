@@ -1,0 +1,9 @@
+{
+  "portfolio": [
+    { "ticker": "AAPL", "name": "Apple Inc.", "shares": 10, "avgPrice": 150.00 },
+    { "ticker": "MSFT", "name": "Microsoft Corp.", "shares": 5, "avgPrice": 280.00 },
+    { "ticker": "GOOGL", "name": "Alphabet Inc.", "shares": 8, "avgPrice": 140.00 },
+    { "ticker": "AMZN", "name": "Amazon.com Inc.", "shares": 3, "avgPrice": 145.00 },
+    { "ticker": "TSLA", "name": "Tesla Inc.", "shares": 15, "avgPrice": 220.00 }
+  ]
+}
