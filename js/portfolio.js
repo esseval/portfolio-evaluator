@@ -90,6 +90,95 @@ const Portfolio = {
     return { success: true, count: valid.length };
   },
 
+  parseAccionesTxt(text) {
+    const blocks = text.trim().split(/\n\s*\n/);
+    const portfolioItems = [];
+    const transactions = [];
+
+    for (const block of blocks) {
+      const lines = block.trim().split('\n').map(l => l.trim());
+      if (lines.length < 2) continue;
+
+      const header = lines[0].split('\t');
+      const ticker = header[0].toUpperCase();
+
+      let totalShares = 0;
+      let totalCost = 0;
+
+      for (let i = 1; i < lines.length; i++) {
+        const parts = lines[i].split('\t');
+        if (parts.length < 3) continue;
+        const type = parts[0];
+        const shares = parseFloat(parts[1].replace(',', '.'));
+        const price = parseFloat(parts[2].replace(',', '.'));
+        var dateStr = parts[3] ? parts[3].trim() : '';
+
+        if (!shares || !price) continue;
+
+        var dateParts = dateStr.split('/');
+        var isoDate = dateParts.length === 3 ? dateParts[2] + '-' + dateParts[1] + '-' + dateParts[0] : '';
+
+        var isBuy = type === '+' || type === '';
+
+        if (isBuy) {
+          totalShares += shares;
+          totalCost += shares * price;
+        } else {
+          totalShares -= shares;
+        }
+
+        transactions.push({
+          id: generateId(),
+          date: isoDate,
+          ticker: ticker,
+          type: isBuy ? 'BUY' : 'SELL',
+          shares: shares,
+          price: price,
+          total: shares * price
+        });
+      }
+
+      if (totalShares > 0) {
+        portfolioItems.push({
+          ticker: ticker,
+          name: '',
+          shares: totalShares,
+          avgPrice: totalCost / (totalShares + 0)
+        });
+      }
+    }
+
+    return { portfolio: portfolioItems, transactions };
+  },
+
+  loadFromAccionesTxt(text) {
+    try {
+      const parsed = this.parseAccionesTxt(text);
+      if (!parsed.portfolio || parsed.portfolio.length === 0) {
+        return { success: false, error: 'No se encontraron posiciones válidas en el archivo' };
+      }
+
+      this._items = parsed.portfolio;
+      this._save();
+      this._notify();
+
+      const totalInvested = parsed.portfolio.reduce(function (sum, p) {
+        return sum + p.shares * p.avgPrice;
+      }, 0);
+      Storage.setInitialCapital(totalInvested);
+      Storage.setCashBalance(0);
+      Storage.setTransactions(parsed.transactions);
+
+      return {
+        success: true,
+        count: parsed.portfolio.length,
+        transactions: parsed.transactions.length
+      };
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  },
+
   onChange(fn) {
     this._listeners.push(fn);
   },

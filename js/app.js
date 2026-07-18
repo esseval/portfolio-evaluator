@@ -10,6 +10,8 @@ const App = {
     this._setupUI();
     this._setupEventListeners();
     Portfolio.onChange(() => this.refresh());
+    var settings = Storage.getSettings();
+    document.getElementById('currencyToggle').textContent = settings.currency === 'ARS' ? '$ ARS' : 'US$ USD';
     this.refresh();
   },
 
@@ -25,6 +27,10 @@ const App = {
       document.getElementById('fileInput').click();
     });
     document.getElementById('fileInput').addEventListener('change', (e) => this._handleFileUpload(e));
+    document.getElementById('loadAccionesBtn').addEventListener('click', () => {
+      document.getElementById('accionesFileInput').click();
+    });
+    document.getElementById('accionesFileInput').addEventListener('change', (e) => this._handleAccionesUpload(e));
     document.getElementById('addTransactionBtn').addEventListener('click', () => this._showTransactionModal());
     document.getElementById('transactionForm').addEventListener('submit', (e) => this._handleTransactionSubmit(e));
     document.getElementById('exportTextBtn').addEventListener('click', () => this._exportText());
@@ -33,6 +39,7 @@ const App = {
     document.getElementById('printBtn').addEventListener('click', () => window.print());
     document.getElementById('refreshBtn').addEventListener('click', () => this.refresh());
     document.getElementById('themeToggle').addEventListener('click', () => this._toggleTheme());
+    document.getElementById('currencyToggle').addEventListener('click', () => this._toggleCurrency());
     document.getElementById('clearDataBtn').addEventListener('click', () => this._clearData());
     document.getElementById('cancelTransaction').addEventListener('click', () => this._hideTransactionModal());
     document.getElementById('closeReport').addEventListener('click', () => this._hideReportModal());
@@ -40,6 +47,12 @@ const App = {
     document.getElementById('downloadReportBtn').addEventListener('click', () => this._downloadReport());
     document.getElementById('downloadReportCSVBtn').addEventListener('click', () => this._downloadReportCSV());
     document.getElementById('showReportBtn').addEventListener('click', () => this._showReport());
+    document.getElementById('initialCapitalInput').addEventListener('change', (e) => {
+      const value = parseFloat(e.target.value) || 0;
+      Storage.setInitialCapital(value);
+      this._renderSummary();
+      this._updateEquityHistory();
+    });
   },
 
   async refresh() {
@@ -85,13 +98,15 @@ const App = {
 
   _updateEquityHistory() {
     const portfolio = Portfolio.getAll();
-    let totalValue = 0;
+    let positionsValue = 0;
     portfolio.forEach(item => {
       const md = this._marketData[item.ticker];
       if (md) {
-        totalValue += item.shares * md.currentPrice;
+        positionsValue += item.shares * md.currentPrice;
       }
     });
+    const cash = Storage.getCashBalance();
+    const totalValue = positionsValue + cash;
     if (totalValue > 0) {
       const history = Storage.getEquityHistory();
       const today = getDateStr(new Date());
@@ -186,11 +201,19 @@ const App = {
   _renderSummary() {
     const portfolio = Portfolio.getAll();
     const summary = Report.generateSummary(portfolio, this._marketData, this._signals);
-    document.getElementById('totalInvested').textContent = formatCurrency(summary.totalInvested);
-    document.getElementById('totalCurrent').textContent = formatCurrency(summary.totalCurrent);
+    const initialCapital = Storage.getInitialCapital();
+    const cash = Storage.getCashBalance();
+    const totalValue = summary.totalCurrent + cash;
+    const totalGainLoss = initialCapital > 0 ? totalValue - initialCapital : summary.totalGainLoss;
+    const totalReturn = initialCapital > 0 ? (totalGainLoss / initialCapital) * 100 : summary.totalReturn;
+
+    document.getElementById('totalInvested').textContent = formatCurrency(initialCapital > 0 ? initialCapital : summary.totalInvested);
+    document.getElementById('totalCurrent').textContent = formatCurrency(totalValue);
+    document.getElementById('cashBalance').textContent = formatCurrency(cash);
+    document.getElementById('initialCapitalInput').value = initialCapital;
     const gainLossEl = document.getElementById('totalGainLoss');
-    gainLossEl.textContent = formatCurrency(summary.totalGainLoss) + ' (' + formatPercent(summary.totalReturn) + ')';
-    gainLossEl.className = summary.totalGainLoss >= 0 ? 'positive' : 'negative';
+    gainLossEl.textContent = formatCurrency(totalGainLoss) + ' (' + formatPercent(totalReturn) + ')';
+    gainLossEl.className = totalGainLoss >= 0 ? 'positive' : 'negative';
     document.getElementById('positionCount').textContent = portfolio.length;
   },
 
@@ -270,6 +293,27 @@ const App = {
     }
   },
 
+  _handleAccionesUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target.result;
+      var result = Portfolio.loadFromAccionesTxt(content);
+      if (result.success) {
+        var settings = Storage.getSettings();
+        settings.currency = 'ARS';
+        Storage.setSettings(settings);
+        document.getElementById('currencyToggle').textContent = '$ ARS';
+        this.showToast('Cargadas ' + result.count + ' posiciones y ' + result.transactions + ' transacciones', 'success');
+      } else {
+        this.showToast('Error: ' + result.error, 'error');
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+  },
+
   _handleFileUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -332,8 +376,12 @@ const App = {
     transactions.push(transaction);
     Storage.setTransactions(transactions);
 
+    const total = shares * price;
+    let cash = Storage.getCashBalance();
+
     if (type === 'BUY') {
       Portfolio.add({ ticker: ticker, shares: shares, avgPrice: price });
+      cash -= total;
     } else {
       const item = Portfolio.get(ticker);
       if (item) {
@@ -344,7 +392,10 @@ const App = {
           Portfolio.update(ticker, { shares: newShares });
         }
       }
+      cash += total;
     }
+
+    Storage.setCashBalance(cash);
 
     this._hideTransactionModal();
     this.showToast('Transacci\u00f3n registrada', 'success');
@@ -402,6 +453,14 @@ const App = {
     Report.download(json, 'portafolio.json', 'application/json');
   },
 
+  _toggleCurrency() {
+    var settings = Storage.getSettings();
+    settings.currency = settings.currency === 'ARS' ? 'USD' : 'ARS';
+    Storage.setSettings(settings);
+    document.getElementById('currencyToggle').textContent = settings.currency === 'ARS' ? '$ ARS' : 'US$ USD';
+    this._renderAll();
+  },
+
   _toggleTheme() {
     const body = document.body;
     const isDark = body.classList.toggle('dark-theme');
@@ -418,6 +477,18 @@ const App = {
       this._renderAll();
       this.showToast('Datos eliminados', 'success');
     }
+  },
+
+  _getTotalValue() {
+    const portfolio = Portfolio.getAll();
+    let positionsValue = 0;
+    portfolio.forEach(item => {
+      const md = this._marketData[item.ticker];
+      if (md) {
+        positionsValue += item.shares * md.currentPrice;
+      }
+    });
+    return positionsValue + Storage.getCashBalance();
   },
 
   _showLoading(show) {
