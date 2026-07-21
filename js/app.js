@@ -73,6 +73,27 @@ const App = {
     this._loading = false;
   },
 
+  async _refreshSingleTicker(ticker) {
+    if (this._loading) return;
+    this._loading = true;
+    this._showLoading(true);
+    try {
+      const data = await MarketData.fetchQuote(ticker, true);
+      this._marketData[ticker] = data;
+      if (data && data.closes && data.closes.length > 0) {
+        this._indicators[ticker] = Indicators.calculateAll(data.closes);
+        this._signals[ticker] = Signals.generate(this._indicators[ticker], data.closes);
+      }
+      this._renderAll();
+      this.showToast(ticker + ' actualizado', 'success');
+    } catch (e) {
+      console.warn('Failed to refresh ' + ticker + ':', e.message);
+      this.showToast('Error al actualizar ' + ticker, 'error');
+    }
+    this._showLoading(false);
+    this._loading = false;
+  },
+
   _calculateIndicators() {
     this._indicators = {};
     for (const ticker in this._marketData) {
@@ -150,7 +171,10 @@ const App = {
         '<td class="' + (currentPrice > 0 ? '' : 'text-muted') + '">' + (currentPrice > 0 ? formatCurrency(currentPrice) : '\u2014') + '</td>',
         '<td class="' + (gainLoss >= 0 ? 'positive' : 'negative') + '">' + formatCurrency(gainLoss) + ' (' + formatPercent(gainLossPercent) + ')</td>',
         '<td class="signal-' + signal.toLowerCase() + '">' + this._signalLabel(signal) + '</td>',
-        '<td><button class="btn btn-sm btn-danger remove-btn" data-ticker="' + item.ticker + '">\u2715</button></td>'
+        '<td>' +
+          '<button class="btn btn-sm btn-refresh" data-ticker="' + item.ticker + '" title="Actualizar cotizaci\u00f3n">\u21bb</button> ' +
+          '<button class="btn btn-sm btn-danger remove-btn" data-ticker="' + item.ticker + '">\u2715</button>' +
+        '</td>'
       ].join('');
       tbody.appendChild(tr);
     });
@@ -181,6 +205,13 @@ const App = {
         if (confirm('Eliminar ' + ticker + ' del portafolio?')) {
           Portfolio.remove(ticker);
         }
+      });
+    });
+
+    document.querySelectorAll('.btn-refresh').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const ticker = e.target.dataset.ticker;
+        this._refreshSingleTicker(ticker);
       });
     });
   },

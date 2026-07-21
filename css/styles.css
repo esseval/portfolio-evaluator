@@ -112,6 +112,19 @@ header h1 {
   font-size: 0.8rem;
 }
 
+.btn-refresh {
+  background: transparent;
+  color: var(--primary);
+  border-color: var(--primary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-refresh:hover {
+  background: var(--primary);
+  color: white;
+}
+
 .btn-danger {
   background: var(--danger);
   color: white;

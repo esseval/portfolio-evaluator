@@ -23,12 +23,13 @@ const MarketData = {
     Storage.setMarketCache(this._cache);
   },
 
-  async fetchQuote(ticker) {
+  async fetchQuote(ticker, force = false) {
     ticker = ticker.toUpperCase();
-    const cached = this._getCached(ticker);
-    if (cached) return cached;
-
-    if (this._pending[ticker]) return this._pending[ticker];
+    if (!force) {
+      const cached = this._getCached(ticker);
+      if (cached) return cached;
+      if (this._pending[ticker]) return this._pending[ticker];
+    }
 
     const yahooTicker = ticker + '.BA';
 
