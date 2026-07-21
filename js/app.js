@@ -168,7 +168,7 @@ const App = {
         '<td><strong>' + item.ticker + '</strong><br><small>' + item.name + '</small></td>',
         '<td><input type="number" class="edit-shares" value="' + item.shares + '" min="0" step="1" data-ticker="' + item.ticker + '"></td>',
         '<td><input type="number" class="edit-price" value="' + item.avgPrice + '" min="0" step="0.01" data-ticker="' + item.ticker + '"></td>',
-        '<td class="' + (currentPrice > 0 ? '' : 'text-muted') + '">' + (currentPrice > 0 ? formatCurrency(currentPrice) : '\u2014') + '</td>',
+        '<td><input type="number" class="edit-currentprice" value="' + (currentPrice > 0 ? currentPrice : '') + '" min="0" step="0.01" data-ticker="' + item.ticker + '" placeholder="\u2014"></td>',
         '<td class="' + (gainLoss >= 0 ? 'positive' : 'negative') + '">' + formatCurrency(gainLoss) + ' (' + formatPercent(gainLossPercent) + ')</td>',
         '<td class="signal-' + signal.toLowerCase() + '">' + this._signalLabel(signal) + '</td>',
         '<td>' +
@@ -195,6 +195,20 @@ const App = {
         const price = parseFloat(e.target.value);
         if (price > 0) {
           Portfolio.update(ticker, { avgPrice: price });
+        }
+      });
+    });
+
+    document.querySelectorAll('.edit-currentprice').forEach(input => {
+      input.addEventListener('change', (e) => {
+        const ticker = e.target.dataset.ticker;
+        const price = parseFloat(e.target.value);
+        if (price > 0) {
+          if (!this._marketData[ticker]) {
+            this._marketData[ticker] = {};
+          }
+          this._marketData[ticker].currentPrice = price;
+          this._renderAll();
         }
       });
     });
