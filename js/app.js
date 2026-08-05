@@ -58,20 +58,25 @@ const App = {
     if (this._loading) return;
     this._loading = true;
     this._showLoading(true);
-    const portfolio = Portfolio.getAll();
-    if (portfolio.length === 0) {
+    try {
+      const portfolio = Portfolio.getAll();
+      if (portfolio.length === 0) return;
+      const tickers = portfolio.map(p => p.ticker);
+      this._marketData = await MarketData.fetchQuotes(tickers);
+      if (tickers.length > 0 && tickers.every(t => !this._marketData[t])) {
+        this.showToast('No se pudo obtener cotizaciones de mercado', 'error');
+      }
+      this._calculateIndicators();
+      this._generateSignals();
+      this._updateEquityHistory();
+      this._renderAll();
+    } catch (e) {
+      console.error('Error al actualizar el portafolio:', e);
+      this.showToast('Error al actualizar el portafolio', 'error');
+    } finally {
       this._showLoading(false);
       this._loading = false;
-      return;
     }
-    const tickers = portfolio.map(p => p.ticker);
-    this._marketData = await MarketData.fetchQuotes(tickers);
-    this._calculateIndicators();
-    this._generateSignals();
-    this._updateEquityHistory();
-    this._renderAll();
-    this._showLoading(false);
-    this._loading = false;
   },
 
   async _refreshSingleTicker(ticker) {
