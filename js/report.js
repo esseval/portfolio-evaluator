@@ -98,6 +98,36 @@ const Report = {
     return lines.join('\n');
   },
 
+  generateAccionesTxt(transactions) {
+    if (!transactions || transactions.length === 0) return '';
+
+    const byTicker = {};
+    transactions.forEach(t => {
+      if (!byTicker[t.ticker]) byTicker[t.ticker] = [];
+      byTicker[t.ticker].push(t);
+    });
+
+    const toDDMMYYYY = (iso) => {
+      const parts = (iso || '').split('-');
+      return parts.length === 3 ? parts[2] + '/' + parts[1] + '/' + parts[0] : (iso || '');
+    };
+    const toComma = (n) => String(n).replace('.', ',');
+
+    const blocks = Object.keys(byTicker).map(ticker => {
+      const lines = [ticker];
+      byTicker[ticker]
+        .slice()
+        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .forEach(t => {
+          const type = t.type === 'SELL' ? '-' : '+';
+          lines.push([type, toComma(t.shares), toComma(t.price), toDDMMYYYY(t.date)].join('\t'));
+        });
+      return lines.join('\n');
+    });
+
+    return blocks.join('\n\n');
+  },
+
   download(content, filename, mimeType) {
     const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);

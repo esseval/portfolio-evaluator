@@ -34,6 +34,7 @@ const App = {
     document.getElementById('exportTextBtn').addEventListener('click', () => this._exportText());
     document.getElementById('exportCSVBtn').addEventListener('click', () => this._exportCSV());
     document.getElementById('exportJSONBtn').addEventListener('click', () => this._exportJSON());
+    document.getElementById('exportAccionesBtn').addEventListener('click', () => this._exportAccionesTxt());
     document.getElementById('printBtn').addEventListener('click', () => window.print());
     document.getElementById('refreshBtn').addEventListener('click', () => this.refresh());
     document.getElementById('themeToggle').addEventListener('click', () => this._toggleTheme());
@@ -490,6 +491,16 @@ const App = {
     const data = { portfolio: portfolio, exportedAt: new Date().toISOString() };
     const json = JSON.stringify(data, null, 2);
     Report.download(json, 'portafolio.json', 'application/json');
+  },
+
+  _exportAccionesTxt() {
+    const transactions = Storage.getTransactions();
+    if (transactions.length === 0) {
+      this.showToast('No hay transacciones para exportar', 'error');
+      return;
+    }
+    const text = Report.generateAccionesTxt(transactions);
+    Report.download(text, 'acciones.txt', 'text/plain');
   },
 
   _toggleTheme() {
