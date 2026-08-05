@@ -35,7 +35,7 @@ const App = {
     document.getElementById('exportCSVBtn').addEventListener('click', () => this._exportCSV());
     document.getElementById('exportJSONBtn').addEventListener('click', () => this._exportJSON());
     document.getElementById('exportAccionesBtn').addEventListener('click', () => this._exportAccionesTxt());
-    document.getElementById('printBtn').addEventListener('click', () => window.print());
+    // document.getElementById('printBtn').addEventListener('click', () => window.print());
     document.getElementById('refreshBtn').addEventListener('click', () => this.refresh());
     document.getElementById('themeToggle').addEventListener('click', () => this._toggleTheme());
     

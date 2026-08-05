@@ -11,11 +11,13 @@
     <div class="container">
       <h1>📊 Evaluador de Portafolio</h1>
       <div class="header-actions">
-        <button class="btn" id="loadFileBtn">📂 Cargar CSV/JSON</button>
+        <button class="btn" id="loadFileBtn">📂 Cargar Portafolio CSV/JSON</button>
         <input type="file" id="fileInput" accept=".json,.csv" style="display:none">
-        <button class="btn" id="loadAccionesBtn">📜 Cargar TXT</button>
+
+        <button class="btn" id="loadAccionesBtn">📜 Cargar Transacciones TXT</button>
         <input type="file" id="accionesFileInput" accept=".txt" style="display:none">
         <button class="btn" id="addTransactionBtn">➕ Transacción</button>
+
         <button class="btn" id="showReportBtn">📄 Reporte</button>
         <button class="btn" id="refreshBtn">🔄 Actualizar</button>
         <button class="btn" id="themeToggle">🌓 Tema</button>
@@ -62,13 +64,19 @@
         </div>
 
         <div class="card">
-          <h2>Exportar</h2>
+          <h2>Exportar Portafolio</h2>
           <div style="display:flex;flex-direction:column;gap:8px">
             <button class="btn btn-sm" id="exportTextBtn">📄 Exportar TXT</button>
             <button class="btn btn-sm" id="exportCSVBtn">📊 Exportar CSV</button>
             <button class="btn btn-sm" id="exportJSONBtn">📋 Exportar JSON</button>
-            <button class="btn btn-sm" id="exportAccionesBtn">📜 Exportar Transacciones TXT</button>
-            <button class="btn btn-sm" id="printBtn">🖨 Imprimir</button>
+            <!-- <button class="btn btn-sm" id="printBtn">🖨 Imprimir</button> -->
+          </div>
+        </div> 
+
+        <div class="card">
+          <h2>Exportar Transacciones</h2>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button class="btn btn-sm" id="exportAccionesBtn">📜 Exportar TXT</button>
           </div>
         </div>
       </aside>
