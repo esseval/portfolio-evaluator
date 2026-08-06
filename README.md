@@ -4,14 +4,14 @@ Aplicación web 100% del lado del cliente para evaluar y dar seguimiento a un po
 
 ## Características
 
-- **Carga de portafolio** desde archivos JSON, CSV o formato TXT (con Posiciones y Transacciones)
+- **Carga de portafolio** desde archivos JSON, CSV o formato TXT nativo (Posiciones, Transacciones y montos de valor actual/rendimiento en la cabecera)
 - **Datos de mercado en tiempo real** via Yahoo Finance (sufijo `.BA` para CEDEARs cotizados en ARS)
 - **Indicadores técnicos**: SMA, EMA, RSI, MACD, Bollinger Bands
 - **Señales de compra/venta**: scoring ponderado basado en múltiples indicadores
 - **Registro de transacciones**: compra/venta con actualización de precio promedio y efectivo disponible
 - **Capital inicial**: permite definir el capital aportado para calcular ganancia/pérdida real
 - **Gráfico de evolución patrimonial** con Canvas API
-- **Reportes exportables**: TXT, CSV, JSON, copia al portapapeles, impresión
+- **Reportes exportables**: TXT, CSV, JSON, TXT de transacciones (`acciones.txt`) y copia al portapapeles
 - **Persistencia local** via localStorage
 - **Tema claro/oscuro**
 - **Diseño responsive**
@@ -33,7 +33,7 @@ portfolio-evaluator/
 │   └── utils.js            # Utilidades generales
 └── data/
     ├── portfolio-sample.json
-    ├── portfolio-sample.txt
+    ├── portfolio.sample.txt
     └── portfolio-sample.csv
 ```
 
@@ -70,15 +70,17 @@ MSFT,Microsoft Corp.,5,280.00
 ### Formato TXT
 
 ```
-AAPL	52600	14109
-+	2	19250
+AAPL	105000	21500	25.75
++	2	19250	08/05/2026
++	3	15000	20/03/2026
 
-CVX	128940	5970
+CVX	128940	5420	4.39
 +	3	16900	08/05/2026
 +	2	18770	20/03/2026
++	2	17640	03/03/2026
 ```
 
-Cada bloque separado por línea vacía. Primera línea: `TICKER\tcapitalActual\tganancia`. Líneas siguientes: `+\tCANTIDAD\tPRECIO\tFECHA` (compra) o `-\tCANTIDAD\tPRECIO\tFECHA` (venta).
+Cada bloque separado por línea vacía. Primera línea: `TICKER\tValorActual\tRendimiento(nominal)\tRendimiento%`. Líneas siguientes: `+\tCANTIDAD\tPRECIO\tFECHA` (compra) o `-\tCANTIDAD\tPRECIO\tFECHA` (venta). La fecha es opcional, en formato `DD/MM/YYYY`. Los valores numéricos usan coma como separador decimal.
 
 ## API de datos
 
