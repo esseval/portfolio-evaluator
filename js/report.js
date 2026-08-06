@@ -98,7 +98,7 @@ const Report = {
     return lines.join('\n');
   },
 
-  generateAccionesTxt(transactions) {
+  generateAccionesTxt(transactions, marketData) {
     if (!transactions || transactions.length === 0) return '';
 
     const byTicker = {};
@@ -111,17 +111,35 @@ const Report = {
       const parts = (iso || '').split('-');
       return parts.length === 3 ? parts[2] + '/' + parts[1] + '/' + parts[0] : (iso || '');
     };
-    const toComma = (n) => String(n).replace('.', ',');
+    const toComma = (n) => String(Math.round(n * 100) / 100).replace('.', ',');
 
     const blocks = Object.keys(byTicker).map(ticker => {
-      const lines = [ticker];
-      byTicker[ticker]
+      const txs = byTicker[ticker]
         .slice()
-        .sort((a, b) => new Date(a.date) - new Date(b.date))
-        .forEach(t => {
-          const type = t.type === 'SELL' ? '-' : '+';
-          lines.push([type, toComma(t.shares), toComma(t.price), toDDMMYYYY(t.date)].join('\t'));
-        });
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      let totalShares = 0;
+      let totalCost = 0;
+      txs.forEach(t => {
+        if (t.type === 'SELL') {
+          totalShares -= t.shares;
+        } else {
+          totalShares += t.shares;
+          totalCost += t.shares * t.price;
+        }
+      });
+
+      const md = marketData ? marketData[ticker] : null;
+      const currentPrice = md ? md.currentPrice : 0;
+      const currentValue = totalShares > 0 ? totalShares * currentPrice : 0;
+      const rend = currentValue - totalCost;
+      const rendPct = totalCost > 0 ? ((currentValue - totalCost) / totalCost) * 100 : 0;
+
+      const lines = [[ticker, toComma(currentValue), toComma(rend), toComma(rendPct)].join('\t')];
+      txs.forEach(t => {
+        const type = t.type === 'SELL' ? '-' : '+';
+        lines.push([type, toComma(t.shares), toComma(t.price), toDDMMYYYY(t.date)].join('\t'));
+      });
       return lines.join('\n');
     });
 

@@ -504,7 +504,7 @@ const App = {
       this.showToast('No hay transacciones para exportar', 'error');
       return;
     }
-    const text = Report.generateAccionesTxt(transactions);
+    const text = Report.generateAccionesTxt(transactions, this._marketData);
     Report.download(text, 'acciones.txt', 'text/plain');
   },
 

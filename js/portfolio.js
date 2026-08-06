@@ -101,6 +101,8 @@ const Portfolio = {
 
       const header = lines[0].split('\t');
       const ticker = header[0].toUpperCase();
+      const headerCurrentValue = parseFloat((header[1] || '').replace(',', '.'));
+      const headerRend = parseFloat((header[2] || '').replace(',', '.'));
 
       let totalShares = 0;
       let totalCost = 0;
@@ -139,11 +141,16 @@ const Portfolio = {
       }
 
       if (totalShares > 0) {
+        const currentValue = !isNaN(headerCurrentValue) && headerCurrentValue > 0
+          ? headerCurrentValue
+          : totalCost + (isNaN(headerRend) ? 0 : headerRend);
         portfolioItems.push({
           ticker: ticker,
           name: '',
           shares: totalShares,
-          avgPrice: totalCost / (totalShares + 0)
+          avgPrice: totalCost / (totalShares + 0),
+          currentValue: currentValue,
+          currentPrice: currentValue > 0 ? currentValue / totalShares : 0
         });
       }
     }
@@ -168,6 +175,33 @@ const Portfolio = {
       Storage.setInitialCapital(totalInvested);
       Storage.setCashBalance(0);
       Storage.setTransactions(parsed.transactions);
+
+      const cache = Storage.getMarketCache();
+      parsed.portfolio.forEach(function (p) {
+        if (p.currentValue > 0 && p.shares > 0) {
+          const ticker = p.ticker.toUpperCase();
+          cache[ticker] = {
+            data: {
+              ticker: ticker,
+              currentPrice: p.currentValue / p.shares,
+              previousClose: 0,
+              high: 0,
+              low: 0,
+              open: 0,
+              change: 0,
+              changePercent: 0,
+              closes: [],
+              highs: [],
+              lows: [],
+              volumes: [],
+              dates: []
+            },
+            timestamp: Date.now()
+          };
+        }
+      });
+      Storage.setMarketCache(cache);
+      MarketData._cache = cache;
 
       return {
         success: true,
