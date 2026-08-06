@@ -113,7 +113,7 @@ const Report = {
     };
     const toComma = (n) => String(Math.round(n * 100) / 100).replace('.', ',');
 
-    const blocks = Object.keys(byTicker).map(ticker => {
+    const blocks = Object.keys(byTicker).sort().map(ticker => {
       const txs = byTicker[ticker]
         .slice()
         .sort((a, b) => new Date(a.date) - new Date(b.date));

@@ -8,7 +8,7 @@ const Portfolio = {
   },
 
   getAll() {
-    return [...this._items];
+    return [...this._items].sort((a, b) => a.ticker.localeCompare(b.ticker));
   },
 
   get(ticker) {
