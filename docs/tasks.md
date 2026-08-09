@@ -175,7 +175,7 @@
 | IEX Cloud | Acciones USA | Sí (tier gratis) | 50,000 req/mes | Sí |
 | Twelve Data | Acciones globales | Sí (gratis) | 800 req/día | Sí |
 
-**Recomendación primaria:** Yahoo Finance (sin key, mayor disponibilidad de datos históricos). Fallback: Alpha Vantage o Finnhub.
+**Recomendación primaria:** data912.com (históricos OHLCV de CEDEARs en ARS, CORS habilitado, sin key) — `https://data912.com/historical/cedears/{ticker}` y `https://data912.com/live/arg_cedears`. Fallback: Yahoo Finance (sin key, con proxies CORS).
 
 ---
 

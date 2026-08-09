@@ -31,9 +31,7 @@ const MarketData = {
       if (this._pending[ticker]) return this._pending[ticker];
     }
 
-    const yahooTicker = ticker + '.BA';
-
-    const promise = this._fetchWithFallback(yahooTicker)
+    const promise = this._fetchWithFallback(ticker)
       .then(data => {
         data.ticker = ticker;
         this._setCache(ticker, data);
@@ -51,18 +49,76 @@ const MarketData = {
 
   async _fetchWithFallback(ticker) {
     const errors = [];
+
+    try {
+      return await this._fetchFromData912(ticker);
+    } catch (e) {
+      errors.push('data912: ' + e.message);
+    }
+
+    const yahooTicker = ticker + '.BA';
     const proxies = [
       'https://api.allorigins.win/raw?url=',
       'https://corsproxy.io/?url='
     ];
     for (const proxy of proxies) {
       try {
-        return await this._fetchFromYahoo(ticker, proxy);
+        return await this._fetchFromYahoo(yahooTicker, proxy);
       } catch (e) {
         errors.push(e.message);
       }
     }
     throw new Error('All fetch attempts failed for ' + ticker + ': ' + errors.join(' | '));
+  },
+
+  async _fetchFromData912(ticker) {
+    const url = 'https://data912.com/historical/cedears/' + encodeURIComponent(ticker);
+    const response = await fetch(url, { mode: 'cors' });
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    const rows = await response.json();
+    if (!Array.isArray(rows) || rows.length === 0) throw new Error('sin datos');
+
+    const closes = [];
+    const highs = [];
+    const lows = [];
+    const volumes = [];
+    const dates = [];
+
+    for (const row of rows) {
+      if (row.c == null) continue;
+      closes.push(row.c);
+      highs.push(row.h || 0);
+      lows.push(row.l || 0);
+      volumes.push(row.v || 0);
+      dates.push(new Date(row.date + 'T00:00:00'));
+    }
+
+    if (closes.length < 2) throw new Error('datos insuficientes');
+
+    const historyLength = Math.min(closes.length, 300);
+    const sliceFrom = closes.length - historyLength;
+    const last = rows[rows.length - 1];
+    const currentPrice = closes[closes.length - 1];
+    const previousClose = closes[closes.length - 2];
+    const change = currentPrice - previousClose;
+    const changePercent = previousClose ? (change / previousClose) * 100 : 0;
+
+    return {
+      ticker: ticker.toUpperCase(),
+      source: 'data912',
+      currentPrice,
+      previousClose,
+      high: last.h || currentPrice,
+      low: last.l || currentPrice,
+      open: last.o || currentPrice,
+      change,
+      changePercent,
+      closes: closes.slice(sliceFrom),
+      highs: highs.slice(sliceFrom),
+      lows: lows.slice(sliceFrom),
+      volumes: volumes.slice(sliceFrom),
+      dates: dates.slice(sliceFrom)
+    };
   },
 
   async _fetchFromYahoo(ticker, proxy) {

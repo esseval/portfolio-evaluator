@@ -8,3 +8,9 @@ Thumbs.db
 .vscode/
 .idea/
 *.sublime-*
+
+# Exportaciones de la app (datos personales del portafolio)
+acciones.txt
+portafolio.json
+posiciones.csv
+reporte-portafolio.txt

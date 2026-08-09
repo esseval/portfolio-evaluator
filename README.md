@@ -5,7 +5,7 @@ Aplicación web 100% del lado del cliente para evaluar y dar seguimiento a un po
 ## Características
 
 - **Carga de portafolio** desde archivos JSON, CSV o formato TXT nativo (Posiciones, Transacciones y montos de valor actual/rendimiento en la cabecera)
-- **Datos de mercado en tiempo real** via Yahoo Finance (sufijo `.BA` para CEDEARs cotizados en ARS)
+- **Datos de mercado en tiempo real** para CEDEARs en ARS via `data912.com` (precios BYMA, sin key ni CORS issues), con **Yahoo Finance como fallback** (sufijo `.BA`)
 - **Indicadores técnicos**: SMA, EMA, RSI, MACD, Bollinger Bands
 - **Señales de compra/venta**: scoring ponderado basado en múltiples indicadores
 - **Registro de transacciones**: compra/venta con actualización de precio promedio y efectivo disponible
@@ -84,7 +84,7 @@ Cada bloque separado por línea vacía. Primera línea: `TICKER\tValorActual\tRe
 
 ## API de datos
 
-Los datos de mercado se obtienen de **Yahoo Finance** a través de proxies CORS públicos (`corsproxy.io`, `api.allorigins.win`). Los tickers se consultan con sufijo `.BA` (BYMA) para obtener precios en pesos argentinos.
+Los datos de mercado se obtienen de **data912.com** (históricos OHLCV de CEDEARs en pesos, `https://data912.com/historical/cedears/{ticker}` — CORS habilitado, sin API key). Si esa fuente falla, se cae a **Yahoo Finance** (sufijo `.BA`) a través de proxies CORS públicos (`corsproxy.io`, `api.allorigins.win`).
 
 ## Limitaciones
 
